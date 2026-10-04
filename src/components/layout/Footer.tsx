@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FaFacebookF, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
+import { FaFacebookF, FaWhatsapp } from 'react-icons/fa6';
 
 // internal imports
 import { businessConfig, whatsappUrl } from '../../config/business';

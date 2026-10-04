@@ -3,7 +3,7 @@ export const businessConfig = {
 	tagline: 'Your shirt Your club Your game',
 	description: 'Football jersey store serving fans in Accra and across Ghana.',
 	email: 'danfodio1991@gmail.com',
-	phone: '+233 24 698 1912',
+	phone: '+233 24 698 1912 / 55 291 1078',
 	whatsapp: '23324 698 1912',
 	address: 'Physical store address',
 	city: 'Accra, Ghana',
