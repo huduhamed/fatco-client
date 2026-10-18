@@ -13,17 +13,36 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 		headers.set('Content-Type', 'application/json');
 
 	const response = await fetch(`${API_URL}${path}`, { ...options, headers });
-	const body = (await response.json().catch(() => ({}))) as { data?: T; error?: string };
+	const responseText = await response.text();
+	let body: { data?: T; error?: string } = {};
+	if (responseText) {
+		try {
+			body = JSON.parse(responseText) as typeof body;
+		} catch {
+			if (response.ok) throw new Error('The API returned an invalid response.');
+		}
+	} else if (response.ok && response.status !== 204) {
+		throw new Error('The API returned an empty response.');
+	}
 
 	if (!response.ok) throw new Error(body.error || 'Something went wrong. Please try again.');
 	return (body.data ?? body) as T;
 }
 
+function asArray<T>(value: unknown): T[] {
+	if (!Array.isArray(value)) throw new Error('The API returned an unexpected list response.');
+	return value as T[];
+}
+
+async function requestArray<T>(path: string): Promise<T[]> {
+	return asArray(await request<unknown>(path));
+}
+
 // product service
 export const productService = {
-	list: async () => request<Product[]>('/products').catch(() => templateProducts),
+	list: async () => requestArray<Product>('/products').catch(() => templateProducts),
 	featured: async () =>
-		request<Product[]>('/products?featured=true').catch(() =>
+		requestArray<Product>('/products?featured=true').catch(() =>
 			templateProducts.filter((product) => product.is_featured),
 		),
 	bySlug: async (slug: string) =>
@@ -50,8 +69,9 @@ export async function adminRequest<T>(path: string, token: string, options?: Req
 
 // admin service
 export const adminService = {
-	products: (token: string) => adminRequest<Product[]>('/products', token),
-	orders: (token: string) => adminRequest<Order[]>('/orders', token),
+	products: async (token: string) =>
+		asArray<Product>(await adminRequest<unknown>('/products', token)),
+	orders: async (token: string) => asArray<Order>(await adminRequest<unknown>('/orders', token)),
 
 	createProduct: (token: string, product: Record<string, unknown>) =>
 		adminRequest<Product>('/products', token, { method: 'POST', body: JSON.stringify(product) }),
